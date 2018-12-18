@@ -1,34 +1,64 @@
-'''
-	Given an array of meeting time intervals consisting of start and end times [[s1,e1], [s2,e2],…] (si < ei), find the minimum number of conference rooms required.
-	For example,
-	Given [[0, 30],[5, 10],[15, 20]],
-	return 2.
-'''
+
+from sys import float_info
+
+E = float_info.epsilon
 
 
-# Definition for an interval.
-# class Interval(object):
-#     def __init__(self, s=0, e=0):
-#         self.start = s
-#         self.end = e
+meetings = {
+    (
+        (1, 3), (3, 5), (5, 7)
+    ): 1,
+    (
+        (1, 3), (2, 4), (3, 5)
+    ): 2,
+    (
+        (1, 3), (1, 4), (1, 2)
+    ): 3
+}
 
-class Solution:
-    def minMeetingRooms(self, intervals):
-    	if not intervals or len(intervals) == 0:
-    		return 0
 
-    	import heapq
+def prep(times):
 
-    	sorted_intervals = sorted(intervals, key=lambda it:(it.start, it.end))
-    	heap, result = [], 0
+    _times = []
 
-    	for interval in sorted_intervals:
-    		start, end = interval.start, interval.end
+    for time in times:
+        _times.append(tuple(range(time[0], time[1])) + (time[1] - 0.1,))
 
-    		while heap and heap[0] <= start:
-    			heapq.heappop(heap)
+    return _times
 
-    		heapq.heappush(heap, end)
 
-    		result = max(result, len(heap))
-    	return result
+def collide(times):
+
+    from itertools import combinations
+
+    colls = 0
+
+    for c in combinations(times, 2):
+
+        d = set(c[0]).difference(set(c[1]))
+        if d != set(c[0]):
+            colls += 1
+
+    return colls
+
+
+def required_rooms(meetings):
+
+    required = tuple()
+
+    for times in meetings.keys():
+
+        times = prep(times)
+        collisions = collide(times)
+        required += (max(collisions, 1),)
+
+    return required
+
+
+if __name__ == "__main__":
+
+    expected = tuple(meetings.values())  # (0, 2, 3)
+
+    assert expected == required_rooms(meetings)
+
+    print("dope.")
